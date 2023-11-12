@@ -82,9 +82,8 @@ const Form = () => {
   }, [formData, tg]);
 
   useEffect(() => {
-    if (currentStep === steps.length) {
-      // Если текущий шаг равен количеству шагов, значит, все поля заполнены
-      // Показываем кнопку "Отправить данные"
+    if (currentStep === steps.length - 1) {
+      // Если текущий шаг равен предпоследнему, показываем кнопку "Отправить данные"
       tg.MainButton.setParams({
         text: 'Отправить данные',
       });
@@ -97,7 +96,7 @@ const Form = () => {
 
   useEffect(() => {
     tg.onEvent('mainButtonClicked', () => {
-      if (currentStep === steps.length) {
+      if (currentStep === steps.length - 1) {
         onSendData();
       } else {
         handleNextStep();
@@ -106,7 +105,7 @@ const Form = () => {
 
     return () => {
       tg.offEvent('mainButtonClicked', () => {
-        if (currentStep === steps.length) {
+        if (currentStep === steps.length - 1) {
           onSendData();
         } else {
           handleNextStep();
@@ -130,7 +129,7 @@ const Form = () => {
                 onChange={(e) => handleInputChange(step, e.target.value)}
               />
               <button onClick={handleNextStep} disabled={currentStep === steps.length - 1}>
-                Далее
+                {currentStep === steps.length - 1 ? 'Отправить данные' : 'Далее'}
               </button>
               {currentStep !== 0 && (
                 <button onClick={handlePrevStep} disabled={currentStep === 0}>
