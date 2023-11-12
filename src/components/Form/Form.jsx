@@ -43,10 +43,6 @@ const Form = () => {
     setStep(0);
   }, [formData, tg]);
 
-  const onChangeField = (fieldName, value) => {
-    setFormData((prevData) => ({ ...prevData, [fieldName]: value }));
-  };
-
   useEffect(() => {
     tg.onEvent('mainButtonClicked', step === 10 ? onSendData : onNextStep);
     return () => {
@@ -55,12 +51,10 @@ const Form = () => {
   }, [step, onSendData, onNextStep]);
 
   useEffect(() => {
-    if (!formData.carMark || !formData.carModel) {
-      tg.MainButton.hide();
-    } else {
-      tg.MainButton.show();
-    }
-  }, [formData.carMark, formData.carModel]);
+    tg.MainButton.setParams({
+      text: step === 10 ? 'Отправить данные' : 'Далее',
+    });
+  }, [step]);
 
   const renderInput = (fieldName, placeholder) => (
     <div>
@@ -70,7 +64,7 @@ const Form = () => {
         type="text"
         placeholder={placeholder}
         value={formData[fieldName]}
-        onChange={(e) => onChangeField(fieldName, e.target.value)}
+        onChange={(e) => setFormData((prevData) => ({ ...prevData, [fieldName]: e.target.value }))}
       />
     </div>
   );
@@ -87,12 +81,6 @@ const Form = () => {
       {step === 7 && renderInput('price', 'Цена:')}
       {step === 8 && renderInput('region', 'Регион:')}
       {step === 9 && renderInput('city', 'Город:')}
-      {step === 10 && (
-        <div>
-          <h3>Отправить данные</h3>
-          <button onClick={onSendData}>Отправить данные</button>
-        </div>
-      )}
     </div>
   );
 };
