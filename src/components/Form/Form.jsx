@@ -4,7 +4,7 @@ import { useTelegram } from '../../hooks/useTelegram';
 
 
 const Form = () => {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({
     carMark: '',
     carModel: '',
@@ -19,6 +19,10 @@ const Form = () => {
   });
 
   const { tg } = useTelegram();
+
+  const onNextStep = useCallback(() => {
+    setStep((prevStep) => prevStep + 1);
+  }, []);
 
   const onSendData = useCallback(() => {
     // Отправка данных на сервер
@@ -36,33 +40,19 @@ const Form = () => {
       region: '',
       city: '',
     });
-    setCurrentStep(0);
+    setStep(0);
   }, [formData, tg]);
-
-  const onNextStep = useCallback(() => {
-    setCurrentStep((prevStep) => prevStep + 1);
-  }, []);
 
   const onChangeField = (fieldName, value) => {
     setFormData((prevData) => ({ ...prevData, [fieldName]: value }));
   };
 
-  const renderInput = (fieldName, placeholder) => (
-    <input
-      className={'input'}
-      type="text"
-      placeholder={placeholder}
-      value={formData[fieldName]}
-      onChange={(e) => onChangeField(fieldName, e.target.value)}
-    />
-  );
-
   useEffect(() => {
-    tg.onEvent('mainButtonClicked', currentStep === 10 ? onSendData : onNextStep);
+    tg.onEvent('mainButtonClicked', step === 10 ? onSendData : onNextStep);
     return () => {
-      tg.offEvent('mainButtonClicked', currentStep === 10 ? onSendData : onNextStep);
+      tg.offEvent('mainButtonClicked', step === 10 ? onSendData : onNextStep);
     };
-  }, [currentStep, onSendData, onNextStep]);
+  }, [step, onSendData, onNextStep]);
 
   useEffect(() => {
     if (!formData.carMark || !formData.carModel) {
@@ -72,20 +62,37 @@ const Form = () => {
     }
   }, [formData.carMark, formData.carModel]);
 
+  const renderInput = (fieldName, placeholder) => (
+    <div>
+      <h3>{placeholder}</h3>
+      <input
+        className={'input'}
+        type="text"
+        placeholder={placeholder}
+        value={formData[fieldName]}
+        onChange={(e) => onChangeField(fieldName, e.target.value)}
+      />
+    </div>
+  );
+
   return (
     <div className={'form'}>
-      <h3>Введите ваши данные</h3>
-      {currentStep === 0 && renderInput('carMark', 'Марка транспортного средства:')}
-      {currentStep === 1 && renderInput('carModel', 'Модель транспортного средства:')}
-      {currentStep === 2 && renderInput('vin', 'VIN:')}
-      {currentStep === 3 && renderInput('caseNumber', 'FRAME:')}
-      {currentStep === 4 && renderInput('insuranceType', 'Мощность л/с:')}
-      {currentStep === 5 && renderInput('carType', 'Тип КПП:')}
-      {currentStep === 6 && renderInput('year', 'Год выпуска:')}
-      {currentStep === 7 && renderInput('price', 'Цена:')}
-      {currentStep === 8 && renderInput('region', 'Регион:')}
-      {currentStep === 9 && renderInput('city', 'Город:')}
-      {currentStep === 10 && <button onClick={onSendData}>Отправить данные</button>}
+      {step === 0 && renderInput('carMark', 'Марка транспортного средства:')}
+      {step === 1 && renderInput('carModel', 'Модель транспортного средства:')}
+      {step === 2 && renderInput('vin', 'VIN:')}
+      {step === 3 && renderInput('caseNumber', 'FRAME:')}
+      {step === 4 && renderInput('insuranceType', 'Мощность л/с:')}
+      {step === 5 && renderInput('carType', 'Тип КПП:')}
+      {step === 6 && renderInput('year', 'Год выпуска:')}
+      {step === 7 && renderInput('price', 'Цена:')}
+      {step === 8 && renderInput('region', 'Регион:')}
+      {step === 9 && renderInput('city', 'Город:')}
+      {step === 10 && (
+        <div>
+          <h3>Отправить данные</h3>
+          <button onClick={onSendData}>Отправить данные</button>
+        </div>
+      )}
     </div>
   );
 };
