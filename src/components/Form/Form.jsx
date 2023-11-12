@@ -4,7 +4,20 @@ import { useTelegram } from '../../hooks/useTelegram';
 
 
 const Form = () => {
-  const [step, setStep] = useState(0);
+  const [steps, setSteps] = useState([
+    'carMark',
+    'carModel',
+    'vin',
+    'caseNumber',
+    'insuranceType',
+    'carType',
+    'year',
+    'price',
+    'region',
+    'city',
+  ]);
+  const [currentStep, setCurrentStep] = useState(0);
+
   const [formData, setFormData] = useState({
     carMark: '',
     carModel: '',
@@ -12,75 +25,61 @@ const Form = () => {
     caseNumber: '',
     insuranceType: '',
     carType: '',
-    year: 0,
-    price: 0,
+    year: '',
+    price: '',
     region: '',
     city: '',
   });
 
-  const { tg } = useTelegram();
+  const handleInputChange = (fieldName, value) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [fieldName]: value,
+    }));
+  };
 
-  const onNextStep = useCallback(() => {
-    setStep((prevStep) => prevStep + 1);
-  }, []);
+  const handleNextStep = () => {
+    setCurrentStep((prevStep) => prevStep + 1);
+  };
 
   const onSendData = useCallback(() => {
-    // Отправка данных на сервер
-    tg.sendData(JSON.stringify(formData));
-    // Сброс данных и переход на первый шаг
-    setFormData({
-      carMark: '',
-      carModel: '',
-      vin: '',
-      caseNumber: '',
-      insuranceType: '',
-      carType: '',
-      year: 0,
-      price: 0,
-      region: '',
-      city: '',
-    });
-    setStep(0);
-  }, [formData, tg]);
+    // Отправка данных
+    console.log('Отправка данных:', formData);
+  }, [formData]);
 
   useEffect(() => {
-    tg.onEvent('mainButtonClicked', step === 10 ? onSendData : onNextStep);
-    return () => {
-      tg.offEvent('mainButtonClicked', step === 10 ? onSendData : onNextStep);
-    };
-  }, [step, onSendData, onNextStep]);
-
-  useEffect(() => {
-    tg.MainButton.setParams({
-      text: step === 10 ? 'Отправить данные' : 'Далее',
-    });
-  }, [step]);
-
-  const renderInput = (fieldName, placeholder) => (
-    <div>
-      <h3>{placeholder}</h3>
-      <input
-        className={'input'}
-        type="text"
-        placeholder={placeholder}
-        value={formData[fieldName]}
-        onChange={(e) => setFormData((prevData) => ({ ...prevData, [fieldName]: e.target.value }))}
-      />
-    </div>
-  );
+    if (currentStep === steps.length) {
+      // Если текущий шаг равен количеству шагов, значит, все поля заполнены
+      // Показываем кнопку "Отправить данные"
+      // И отправляем данные
+      onSendData();
+    }
+  }, [currentStep, steps.length, onSendData]);
 
   return (
     <div className={'form'}>
-      {step === 0 && renderInput('carMark', 'Марка транспортного средства:')}
-      {step === 1 && renderInput('carModel', 'Модель транспортного средства:')}
-      {step === 2 && renderInput('vin', 'VIN:')}
-      {step === 3 && renderInput('caseNumber', 'FRAME:')}
-      {step === 4 && renderInput('insuranceType', 'Мощность л/с:')}
-      {step === 5 && renderInput('carType', 'Тип КПП:')}
-      {step === 6 && renderInput('year', 'Год выпуска:')}
-      {step === 7 && renderInput('price', 'Цена:')}
-      {step === 8 && renderInput('region', 'Регион:')}
-      {step === 9 && renderInput('city', 'Город:')}
+      <h3>Введите ваши данные</h3>
+      {steps.map((step, index) => (
+        <div key={step}>
+          {index === currentStep && (
+            <div>
+              <input
+                className={'input'}
+                type="text"
+                placeholder={`Введите ${step}`}
+                value={formData[step]}
+                onChange={(e) => handleInputChange(step, e.target.value)}
+              />
+              {index !== steps.length - 1 && (
+                <button onClick={handleNextStep}>Далее</button>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+      {currentStep === steps.length && (
+        <button onClick={onSendData}>Отправить данные</button>
+      )}
     </div>
   );
 };
