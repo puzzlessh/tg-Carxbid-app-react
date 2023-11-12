@@ -49,70 +49,57 @@ const Form = () => {
   };
 
   const onSendData = useCallback(() => {
-    const data = {
-      auction_type: '1',
-      binding_offer_time: 15,
-      start: '2024-01-01',
-      end: '2025-01-01',
-      ...formData,
-      auction_object_type: 'car',
-      auction_object: {
-        insurance_type: 'osago',
-        vin: {
-          type: 'vin',
-          value: '13135211565651650',
-        },
-        year: 2023,
-        car_type: {
-          type: 'text',
-          value: 'Грузовик',
-        },
-        car_mark: {
-          type: 'text',
-          value: formData.carMark,
-        },
-        car_model: {
-          type: 'text',
-          value: formData.carModel,
-        },
-      },
-    };
+    // Проверка, все ли поля заполнены
+    const isFormComplete = Object.values(formData).every((value) => value.trim() !== '');
 
-    tg.sendData(JSON.stringify(data));
+    if (isFormComplete) {
+      const data = {
+        auction_type: '1',
+        binding_offer_time: 15,
+        start: '2024-01-01',
+        end: '2025-01-01',
+        ...formData,
+        auction_object_type: 'car',
+        auction_object: {
+          insurance_type: 'osago',
+          vin: {
+            type: 'vin',
+            value: '13135211565651650',
+          },
+          year: 2023,
+          car_type: {
+            type: 'text',
+            value: 'Грузовик',
+          },
+          car_mark: {
+            type: 'text',
+            value: formData.carMark,
+          },
+          car_model: {
+            type: 'text',
+            value: formData.carModel,
+          },
+        },
+      };
+
+      tg.sendData(JSON.stringify(data));
+      tg.closeForm(); // Закрыть форму после отправки данных
+    }
   }, [formData, tg]);
 
   useEffect(() => {
     if (currentStep === steps.length - 1) {
-      // Если текущий шаг равен предпоследнему, показываем кнопку "Отправить данные"
       tg.MainButton.setParams({
         text: 'Отправить данные',
+        onClick: onSendData,
       });
     } else {
       tg.MainButton.setParams({
         text: 'Далее',
+        onClick: handleNextStep,
       });
     }
-  }, [currentStep, steps.length, tg.MainButton]);
-
-  useEffect(() => {
-    tg.onEvent('mainButtonClicked', () => {
-      if (currentStep === steps.length - 1) {
-        onSendData();
-      } else {
-        handleNextStep();
-      }
-    });
-
-    return () => {
-      tg.offEvent('mainButtonClicked', () => {
-        if (currentStep === steps.length - 1) {
-          onSendData();
-        } else {
-          handleNextStep();
-        }
-      });
-    };
-  }, [currentStep, steps.length, onSendData, tg]);
+  }, [currentStep, steps.length, tg.MainButton, onSendData]);
 
   return (
     <div className={'form'}>
