@@ -24,25 +24,25 @@ const Form = () => {
 
   const onSendData = useCallback(() => {
     const data = {
-      auction_type: auctionType,
-      binding_offer_time: bindingOfferTime,
-      start,
-      end,
+      auction_type: "1",
+      binding_offer_time: 15,
+      start:"2024-01-01",
+      end: "2025-01-01",
       price,
       region,
       city,
-      case_number: caseNumber,
-      auction_object_type: auctionObjectType,
+      case_number: "Номер дела",
+      auction_object_type: "car",
       auction_object: {
-        insurance_type: insuranceType,
+        insurance_type: "osago",
         vin: {
-          type: 'vin',
-          value: vin,
+          type: "vin",
+          value: "13135211565651650",
         },
-        year,
+        year:2023,
         car_type: {
           type: 'text',
-          value: carType,
+          value: "Грузовик",
         },
         car_mark: {
           type: 'text',
@@ -179,7 +179,7 @@ const Form = () => {
       <input
         className={'input'}
         type="text"
-        placeholder={'Пробег:'}
+        placeholder={'Цена:'}
         value={price}
         onChange={onChangeMinprice}
       />
@@ -197,7 +197,7 @@ const Form = () => {
         value={city}
         onChange={onChangeCity}
       />
-      <input
+      {/* <input
         className={'input'}
         type="text"
         placeholder={'Дополнительная информация о ТС:'}
@@ -210,7 +210,7 @@ const Form = () => {
         placeholder={'Желаемая минимальная стоимость:'}
         value={end}
         onChange={(e) => setEnd(e.target.value)}
-      />
+      /> */}
     </div>
   );
 };
