@@ -3,7 +3,6 @@ import './Form.css';
 import { useTelegram } from '../../hooks/useTelegram';
 
 const Form = () => {
-  const [currentStep, setCurrentStep] = useState(0);
   const { tg } = useTelegram();
 
   const steps = [
@@ -18,6 +17,8 @@ const Form = () => {
     'region',
     'city',
   ];
+
+  const [currentStep, setCurrentStep] = useState(0);
 
   const [formData, setFormData] = useState({
     carMark: '',
@@ -48,16 +49,42 @@ const Form = () => {
   };
 
   const onSendData = useCallback(() => {
-    // Отправка данных
-    console.log('Отправка данных:', formData);
-    // Ваш код для отправки данных в телеграм
-  }, [formData]);
+    const data = {
+      auction_type: '1',
+      binding_offer_time: 15,
+      start: '2024-01-01',
+      end: '2025-01-01',
+      ...formData,
+      auction_object_type: 'car',
+      auction_object: {
+        insurance_type: 'osago',
+        vin: {
+          type: 'vin',
+          value: '13135211565651650',
+        },
+        year: 2023,
+        car_type: {
+          type: 'text',
+          value: 'Грузовик',
+        },
+        car_mark: {
+          type: 'text',
+          value: formData.carMark,
+        },
+        car_model: {
+          type: 'text',
+          value: formData.carModel,
+        },
+      },
+    };
+
+    tg.sendData(JSON.stringify(data));
+  }, [formData, tg]);
 
   useEffect(() => {
     if (currentStep === steps.length) {
       // Если текущий шаг равен количеству шагов, значит, все поля заполнены
       // Показываем кнопку "Отправить данные"
-      // И отправляем данные
       tg.MainButton.setParams({
         text: 'Отправить данные',
       });
@@ -105,9 +132,11 @@ const Form = () => {
               <button onClick={handleNextStep} disabled={currentStep === steps.length - 1}>
                 Далее
               </button>
-              <button onClick={handlePrevStep} disabled={currentStep === 0}>
-                Назад
-              </button>
+              {currentStep !== 0 && (
+                <button onClick={handlePrevStep} disabled={currentStep === 0}>
+                  Назад
+                </button>
+              )}
             </div>
           )}
         </div>
