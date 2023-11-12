@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+mport React, { useCallback, useEffect, useState } from 'react';
 import './Form.css';
 import { useTelegram } from '../../hooks/useTelegram';
 
 const Form = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const { tg } = useTelegram();
 
   const steps = [
     'carMark',
@@ -31,8 +32,6 @@ const Form = () => {
     city: '',
   });
 
-  const { tg } = useTelegram();
-
   const handleInputChange = (fieldName, value) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -41,59 +40,78 @@ const Form = () => {
   };
 
   const handleNextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prevStep) => prevStep + 1);
-    }
+    setCurrentStep((prevStep) => prevStep + 1);
   };
 
   const handlePrevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prevStep) => prevStep - 1);
-    }
+    setCurrentStep((prevStep) => prevStep - 1);
   };
 
   const onSendData = useCallback(() => {
     // Отправка данных
     console.log('Отправка данных:', formData);
-    // Здесь может быть ваша логика отправки данных
+    // Ваш код для отправки данных в телеграм
   }, [formData]);
 
   useEffect(() => {
-    tg.onEvent('mainButtonClicked', handleNextStep);
-    return () => {
-      tg.offEvent('mainButtonClicked', handleNextStep);
-    };
-  }, [handleNextStep, tg]);
+    if (currentStep === steps.length) {
+      // Если текущий шаг равен количеству шагов, значит, все поля заполнены
+      // Показываем кнопку "Отправить данные"
+      // И отправляем данные
+      tg.MainButton.setParams({
+        text: 'Отправить данные',
+      });
+    } else {
+      tg.MainButton.setParams({
+        text: 'Далее',
+      });
+    }
+  }, [currentStep, steps.length, tg.MainButton]);
 
   useEffect(() => {
-    tg.MainButton.setParams({
-      text: currentStep === steps.length - 1 ? 'Отправить данные' : 'Далее',
+    tg.onEvent('mainButtonClicked', () => {
+      if (currentStep === steps.length) {
+        onSendData();
+      } else {
+        handleNextStep();
+      }
     });
-  }, [currentStep, steps.length, tg]);
+
+    return () => {
+      tg.offEvent('mainButtonClicked', () => {
+        if (currentStep === steps.length) {
+          onSendData();
+        } else {
+          handleNextStep();
+        }
+      });
+    };
+  }, [currentStep, steps.length, onSendData, tg]);
 
   return (
     <div className={'form'}>
       <h3>Введите ваши данные</h3>
-      <div>
-        <input
-          className={'input'}
-          type="text"
-          placeholder={`Введите ${steps[currentStep]}`}
-          value={formData[steps[currentStep]]}
-          onChange={(e) => handleInputChange(steps[currentStep], e.target.value)}
-        />
-      </div>
-      <div>
-        {currentStep > 0 && (
-          <button onClick={handlePrevStep}>Назад</button>
-        )}
-        {currentStep < steps.length - 1 && (
-          <button onClick={handleNextStep}>Далее</button>
-        )}
-        {currentStep === steps.length - 1 && (
-          <button onClick={onSendData}>Отправить данные</button>
-        )}
-      </div>
+      {steps.map((step, index) => (
+        <div key={step}>
+          {index === currentStep && (
+            <div>
+              <input
+                className={'input'}
+                type="text"
+                placeholder={`Введите ${step}`}
+                value={formData[step]}
+                onChange={(e) => handleInputChange(step, e.target.value)}
+              />
+              <button onClick={handleNextStep} disabled={currentStep === steps.length - 1}>
+                Далее
+              </button>
+              <button onClick={handlePrevStep} disabled={currentStep === 0}>
+                Назад
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };
